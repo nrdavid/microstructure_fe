@@ -6,8 +6,8 @@ from matplotlib import pyplot as plt
 from skimage.io import imread
 from skimage.measure import label, regionprops
 
-
 if __name__=="__main__":
+    # Once DBSCAN is implemented, create function to get feature properties.
     
     PHASE_MAP = {0:"Matrix", 
                  1:"Austinite",
@@ -22,17 +22,18 @@ if __name__=="__main__":
         im_lb = imread(f"MetalDAM/labels/{pic.replace('jpg','png')}", as_gray=True)
         
         for k in np.unique(im_lb):
-            mask = np.select([im_lb==k, im_lb!=k], [1, 0], im_og)
-            labels = label(mask)
-            
+            #  mask = np.select([im_lb==k, im_lb!=k], [True, False], im_og)
+            mask = im_lb == k
+            labels = label(mask, connectivity=2)
+
             # Uncomment to see phase comparision.
-            # fig, ax = plt.subplots(1,2)
-            # ax[0].set_title(f"labeled {PHASE_MAP[k]}")
-            # ax[0].imshow(mask)
-            # ax[1].set_title(f"Raw {PHASE_MAP[k]}")
-            # ax[1].imshow(labels)
-            # # plt.title(f"{pic}\n count: {count} , phase {k}")
-            # plt.show()
+            fig, ax = plt.subplots(1,2)
+            ax[0].set_title(f"labeled {PHASE_MAP[k]}")
+            ax[0].imshow(mask)
+            ax[1].set_title(f"Raw {PHASE_MAP[k]}")
+            ax[1].imshow(labels)
+            # plt.title(f"{pic}\n count: {count} , phase {k}")
+            plt.show()
 
             props = ["area", "area_filled", "axis_major_length", "axis_minor_length",
                     "eccentricity", "equivalent_diameter_area", "feret_diameter_max",
@@ -56,4 +57,7 @@ if __name__=="__main__":
 
             morphological_data.append(results)
 
-pd.concat(morphological_data).to_csv("morphological_data.csv")
+if not os.path.exists("data"):
+        os.mkdir("data/")
+
+pd.concat(morphological_data).to_csv("data/morphological_data.csv", index=False)
