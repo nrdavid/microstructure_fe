@@ -1,7 +1,10 @@
+from typing import List
 import os
+import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from tqdm import tqdm
+import seaborn as sns
 
 PHASE_MAP = {0:"Matrix", 
              1:"Austinite",
@@ -27,13 +30,7 @@ def phase_frequency(df: pd.DataFrame, map: dict=PHASE_MAP)-> None:
     plt.tight_layout()
     plt.savefig(f"explore/Phase-Frequency-in-Dataset.png")
 
-def scatter(df: pd.DataFrame, col_a: str, col_b: str)-> None:
-
-    PHASE_MAP = {0:"Matrix", 
-                 1:"Austinite",
-                 2:"Martensite/Austenite",
-                 3:"Precipitate",
-                 4:"Defect"}
+def scatter(df: pd.DataFrame, col_a: str, col_b: str, phase_map: dict)-> None:
 
     labels = df["phase_number"].unique()
     _, ax = plt.subplots()
@@ -51,7 +48,7 @@ def scatter(df: pd.DataFrame, col_a: str, col_b: str)-> None:
     plt.close()
 
 def make_plots(df: pd.DataFrame)-> None:
-    
+
     cache = []
     for i in tqdm(df.columns):
         for c in df.columns:
@@ -65,7 +62,27 @@ def make_plots(df: pd.DataFrame)-> None:
                 pass # need to make histograms
             else:
                 cache.append(s)
-                scatter(df, i, c)
+                scatter(df, i, c, PHASE_MAP)
+
+def plot_predicted_versus_true(data:pd.DataFrame, folder:str) -> None:
+
+    for group in data.groupby(by='phase'):
+        phase, df = group
+        plt.title(f'Calibration Plot For {phase} Phase')
+        plt.scatter(df['True Area'], df['Predicted Area'])
+        plt.ylabel('Predicted Total Phase Area')
+        plt.xlabel('True Total Phase Area')
+        plt.ylim(0, )
+        plt.xlim(0, )
+        plt.savefig(f"{folder}/calibration-plot-for-{phase}.png")
+        plt.clf()
+
+def plot_confusion_matrices(matrices: List[np.ndarray]) -> None:
+    
+    for mat, t in zip(matrices,["Training Dataset", "Test Dataset"]):
+        print(t, mat)
+        sns.heatmap(mat, annot=True).set(title=t)
+        plt.show()
 
 if __name__=="__main__":
     # script to create scatter plots.

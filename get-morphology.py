@@ -65,7 +65,7 @@ if __name__=="__main__":
                 # change to test if results.empty then del results.
                 results["phase_number"] =  k
                 results["phase"] = PHASE_MAP[k]
-                results["picture"] = pic
+                results["picture"] = pic.split('.')[0]
                 results["pic_height"] = im_og.shape[0]
                 results["pic_width"] = im_og.shape[1]
             except:
