@@ -8,6 +8,14 @@ from matplotlib import pyplot as plt
 from skimage.io import imread
 from skimage.measure import label, regionprops
 
+PHASE_MAP = {
+    0:"Matrix", 
+    1:"Austinite",
+    2:"Martensite/Austenite",
+    3:"Precipitate",
+    4:"Defect"
+}
+
 PROPS = [
         "area",
         "area_bbox",
@@ -43,12 +51,6 @@ def get_pixel_to_area_conversion(im: str, db:str=r"MetalDAM/MetalDAM_metadata.sq
 
 if __name__=="__main__":
     # Once DBSCAN is implemented, create function to get feature properties.
-    
-    PHASE_MAP = {0:"Matrix", 
-                 1:"Austinite",
-                 2:"Martensite/Austenite",
-                 3:"Precipitate",
-                 4:"Defect"}
 
     morphological_data = []
     for pic in tqdm(os.listdir(r"MetalDAM/cropped_grayscale")):
