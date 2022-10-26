@@ -8,6 +8,27 @@ from matplotlib import pyplot as plt
 from skimage.io import imread
 from skimage.measure import label, regionprops
 
+PROPS = [
+        "area",
+        "area_bbox",
+        "area_filled",
+        "area_convex",
+        "axis_major_length",
+        "axis_minor_length",
+        "eccentricity",
+        "equivalent_diameter_area",
+        "euler_number",
+        "extent",
+        "feret_diameter_max",
+        "intensity_max",
+        "intensity_mean",
+        "intensity_min",
+        "orientation",
+        "perimeter",
+        "perimeter_crofton",
+        "solidity"
+]
+
 
 def get_pixel_to_area_conversion(im: str, db:str=r"MetalDAM/MetalDAM_metadata.sql") -> float:
 
@@ -51,15 +72,15 @@ if __name__=="__main__":
             # # plt.title(f"{pic}\n count: {count} , phase {k}")
             # plt.show()
 
-            props = ["area", "area_filled", "axis_major_length", "axis_minor_length",
-                    "eccentricity", "equivalent_diameter_area", "feret_diameter_max",
-                    "intensity_max", "intensity_mean", "intensity_min", "perimeter",
-                    "solidity"]
+            # props = ["area", "area_filled", "axis_major_length", "axis_minor_length",
+            #         "eccentricity", "equivalent_diameter_area", "feret_diameter_max",
+            #         "intensity_max", "intensity_mean", "intensity_min", "perimeter",
+            #         "solidity"]
 
             properties = regionprops(labels, im_og)
 
             results = pd.DataFrame.from_dict(
-            {l: {p: properties[l][p] for p in props} for l in range(1, labels.max())}, orient='index'
+            {l: {p: properties[l][p] for p in PROPS} for l in range(1, labels.max())}, orient='index'
             )
             try:
                 # change to test if results.empty then del results.

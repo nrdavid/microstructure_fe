@@ -46,10 +46,7 @@ def train(data: dict, s: int=2) -> Pipeline:
             cv=5,
             n_jobs=-1,
             refit=True
-         )
-         
-         
-         )]
+         ))]
     )
     
     pipe.fit(data["X_train"], training_labels)
