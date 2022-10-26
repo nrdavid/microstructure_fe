@@ -17,7 +17,6 @@ def train(data: dict, s: int=2) -> Pipeline:
     test_labels = data["y_test"].to_numpy().ravel()
     
     # store confusion matrices for training and test set.
-    confusion_matrices = [] 
     
     # # Baseline Dummy Classifier
     # dummy_clf = DummyClassifier(strategy="most_frequent", random_state=s)
