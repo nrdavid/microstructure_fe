@@ -1,7 +1,9 @@
 import os
+import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix, classification_report, ConfusionMatrixDisplay
@@ -31,7 +33,23 @@ def train(data: dict, s: int=2) -> Pipeline:
     # Machine Learning Classifier.
     pipe = Pipeline(
         [('scaler', StandardScaler()), # convert features into z-score.
-         ('clf', SVC(max_iter=100000, random_state=s))]
+         ('clf', GridSearchCV(
+            SVC(),
+            param_grid={
+                'C': np.arange(40, 50, 1),
+                'gamma': np.arange(1e-2, 3, 10),
+                'kernel': ['rbf'],
+                'random_state': [s]
+            },
+            scoring='f1_weighted',
+            verbose=2,
+            cv=5,
+            n_jobs=-1,
+            refit=True
+         )
+         
+         
+         )]
     )
     
     pipe.fit(data["X_train"], training_labels)
