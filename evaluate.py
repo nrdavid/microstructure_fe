@@ -1,6 +1,5 @@
 import os
 import json
-from textwrap import indent
 import numpy as np
 import sqlite3
 import re
@@ -9,7 +8,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_squared_error
 import joblib
 
-def measured_area_fraction() -> pd.DataFrame:
+def measured_area_fraction(pics: np.ndarray) -> pd.DataFrame:
+
+    pic_str = ",".join([f"'images/{p}.jpg'" for p in pics])
 
     with sqlite3.connect(r"MetalDAM/MetalDAM_metadata.sql") as conn:
         cursor = conn.cursor()
@@ -22,7 +23,10 @@ def measured_area_fraction() -> pd.DataFrame:
         (label3 / pixels_per_micron) AS Precipitate,
         (label4 / pixels_per_micron) AS Defect
         FROM
-        micrograph"""
+        micrograph
+        WHERE image_path in ({})
+        """.format(pic_str)
+
         cursor.execute(sql)
         cols = ['picture', 'Matrix', 'Austinite', 'Martensite_Austenite', 'Precipitate', 'Defect']
         df = pd.DataFrame((row for row in cursor.fetchall()), columns=cols)
@@ -33,7 +37,7 @@ def measured_area_fraction() -> pd.DataFrame:
     return df
 
 def evaluate(model: Pipeline, X: pd.DataFrame, measured: pd.DataFrame, key: dict) -> tuple:
-
+    
     X_temp = X.copy(deep=True)
     X_temp.drop(columns=['picture'], inplace=True)
 
@@ -59,7 +63,6 @@ def evaluate(model: Pipeline, X: pd.DataFrame, measured: pd.DataFrame, key: dict
     loss_metrics = {}
     for group in df.groupby(by='phase'):
         phase, d = group
-
         loss_metrics[phase] = round(np.sqrt(mean_squared_error(d['True Area'], d['Predicted Area'])),2)
 
     return df, loss_metrics
@@ -68,22 +71,35 @@ if __name__ == "__main__":
     from split import FEATURES, LABEL, IMAGE
     from viz import PHASE_MAP, plot_predicted_versus_true
 
-    AllData = pd.read_csv(r"data/morphological_data.csv", index_col=False)
-    cols_to_keep = FEATURES + LABEL + IMAGE
-    AllData.drop(columns=[c for c in AllData.columns if c not in cols_to_keep], inplace=True)
+    dataset = {
+        "X_train": pd.read_csv("data/X_train.csv"), 
+        "X_test": pd.read_csv("data/X_test.csv"), 
+    }
+
+    train_pics = dataset['X_train']['picture'].unique()
+    test_pics = dataset['X_test']['picture'].unique()
 
     Model = joblib.load(r"models/classifier.compressed")
 
-    X = AllData.copy(deep=True)
-    X.drop(columns=['phase_number'], inplace=True)
+    MeasuredArea_train = measured_area_fraction(train_pics)
+    train_values, train_loss = evaluate(Model, dataset['X_train'], MeasuredArea_train, PHASE_MAP)
+    train_values['split'] = 'train'
 
-    MeasuredArea = measured_area_fraction()
 
-    values, loss = evaluate(Model, X, MeasuredArea, PHASE_MAP)
+    MeasuredArea_test = measured_area_fraction(test_pics)
+    test_values, test_loss = evaluate(Model, dataset['X_test'], MeasuredArea_test, PHASE_MAP)
+    test_values['split'] = 'test'
+
+    results = pd.concat([train_values, test_values])
+
+    errors = {
+        'train': train_loss,
+        'test': test_loss
+    }
 
     with open("metrics/phase-area-rmse.json", "w") as f:
-        f.write(json.dumps(loss, indent=2))
+        f.write(json.dumps(errors, indent=3))
 
-    plot_predicted_versus_true(values, 'metrics')
+    plot_predicted_versus_true(results, 'metrics')
 
     

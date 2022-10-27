@@ -100,4 +100,10 @@ if __name__=="__main__":
         "y_test": pd.read_csv("data/y_test.csv")
     }
 
+    # For training and testing at the phase level, we can drop the 'picture' column
+    # See evaluate.py to compare total picture phase fraction predicitons.
+    dataset['X_train'].drop(columns=['picture'], inplace=True)
+    dataset['X_test'].drop(columns=['picture'], inplace=True)
+
+
     train(dataset)

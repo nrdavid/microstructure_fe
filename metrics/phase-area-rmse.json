@@ -1,7 +1,16 @@
 {
-  "Austinite": 5765.26,
-  "Defect": 481.38,
-  "Martensite_Austenite": 2492.73,
-  "Matrix": 2434.68,
-  "Precipitate": 104.64
+   "train": {
+      "Austinite": 6063.13,
+      "Defect": 509.39,
+      "Martensite_Austenite": 2527.4,
+      "Matrix": 1499.55,
+      "Precipitate": 79.85
+   },
+   "test": {
+      "Austinite": 6050.97,
+      "Defect": 278.96,
+      "Martensite_Austenite": 2361.24,
+      "Matrix": 5650.52,
+      "Precipitate": 172.65
+   }
 }
