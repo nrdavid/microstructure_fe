@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+from sklearn.utils import compute_class_weight
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
@@ -10,6 +11,73 @@ from sklearn.metrics import confusion_matrix, classification_report, ConfusionMa
 from sklearn.dummy import DummyClassifier
 import joblib
 from matplotlib import pyplot as plt
+
+from tensorflow import keras
+
+
+def train_nn(data: dict) -> None:
+
+
+    scaler = StandardScaler()
+    scaler.fit(data["X_train"])
+
+    X_train_scaled = scaler.transform(data["X_train"])
+    X_test_scaled = scaler.transform(data["X_test"])
+
+    n_classes = len(np.unique(data["y_train"]))
+
+    model = keras.models.Sequential([
+        keras.layers.Dense(32, activation='relu', input_shape=(data["X_train"].shape[1], ), name='input'),
+        keras.layers.Dense(64, activation='relu'),
+        keras.layers.Dense(500, activation='relu'),
+        keras.layers.Dense(900, activation='relu'),
+        keras.layers.Dense(128, activation='relu'),
+        keras.layers.Dense(8, activation='sigmoid'),
+        keras.layers.Dense(n_classes, activation='softmax', name='output')
+    ])
+
+    model.compile(
+        loss='sparse_categorical_crossentropy',
+        optimizer=keras.optimizers.SGD(learning_rate=1e-2),
+        metrics=['accuracy']
+    )
+
+    # ys = data['y_train'].to_numpy().ravel()
+    # weights = compute_class_weight(class_weight='balanced', classes=data['labels'], y=ys)
+    # weights[0] = 1
+    # weights[-2] = 5
+    # weights[-1] = 5
+    # weights = dict(enumerate(weights))
+
+    history = model.fit(
+        X_train_scaled,
+        data['y_train'], 
+        epochs=36,
+        batch_size=16,
+        #class_weight=weights,
+        workers=3,
+        validation_split=.15,
+        verbose=1
+    )
+
+    info = pd.DataFrame(history.history).plot()
+    plt.grid(True)
+    plt.savefig("metrics/loss.png")
+    # plt.show()
+
+    preds = np.argmax(model.predict(X_test_scaled), axis=-1)# return argmax
+    
+    print(classification_report(data['y_test'], preds))
+
+
+    cm = confusion_matrix(data['y_test'], preds)
+
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=data['classes'])
+
+    disp.plot(cmap=plt.cm.Blues)
+    plt.show()
+
+    return None
 
 def train(data: dict, s: int=2) -> Pipeline:
 
@@ -106,4 +174,4 @@ if __name__=="__main__":
     dataset['X_test'].drop(columns=['picture'], inplace=True)
 
 
-    train(dataset)
+    train_nn(dataset)
