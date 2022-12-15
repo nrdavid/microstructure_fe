@@ -64,22 +64,52 @@ def make_plots(df: pd.DataFrame)-> None:
                 cache.append(s)
                 scatter(df, i, c, PHASE_MAP)
 
-def plot_predicted_versus_true(data:pd.DataFrame, folder:str) -> None:
+# def plot_predicted_versus_true(data:pd.DataFrame, folder:str) -> None:
+
+#     for group in data.groupby(by='phase'):
+#         phase, df = group
+
+#         train = df[df['split']=='train']
+#         test = df[df['split']=='test']
+
+#         plt.title(f'Calibration Plot For {phase} Phase')
+#         plt.scatter(train['True Area'], train['Predicted Area'], c='blue')
+#         plt.scatter(test['True Area'], test['Predicted Area'], c='pink')
+#         plt.ylabel('Predicted Total Phase Area')
+#         plt.xlabel('True Total Phase Area')
+#         plt.ylim(0, )
+#         plt.xlim(0, )
+#         plt.savefig(f"{folder}/calibration-plot-for-{phase}.png")
+#         plt.clf()
+
+def plot_predicted_versus_true(data:pd.DataFrame, preds: pd.DataFrame, folder:str ) -> None:
 
     for group in data.groupby(by='phase'):
         phase, df = group
 
+
         train = df[df['split']=='train']
         test = df[df['split']=='test']
 
-        plt.title(f'Calibration Plot For {phase} Phase')
-        plt.scatter(train['True Area'], train['Predicted Area'], c='blue')
-        plt.scatter(test['True Area'], test['Predicted Area'], c='pink')
-        plt.ylabel('Predicted Total Phase Area')
-        plt.xlabel('True Total Phase Area')
-        plt.ylim(0, )
-        plt.xlim(0, )
-        plt.savefig(f"{folder}/calibration-plot-for-{phase}.png")
+        nick_preds = preds[preds['phase']==phase]
+
+        print(train.shape, test.shape)
+        if phase == 'Austinite':
+            phase = 'Austenite'
+
+        plt.title(f'Residual Error For {phase} Phase', fontsize=14)
+        plt.scatter(train['True Area'], train['Predicted Area'], marker='x', c='black', label='Train Images', alpha=0.5)
+        plt.scatter(test['True Area'], test['Predicted Area'], marker='P', c='orange', label='Labeld Test Images')
+        plt.scatter(nick_preds['True Area'], nick_preds['Predicted Area'], marker='8', c='green', label='Segmented Test Images', alpha=0.7)
+        plt.ylabel('Predicted Total Phase Area (microns)', fontsize=14)
+        plt.xlabel('True Total Phase Area (microns)', fontsize=14)
+        print("phase: " + phase)
+        plt.ylim(0, 525 if phase in ('Matrix', 'Austenite') else None)
+        plt.xlim(0, 525 if phase in ('Matrix', 'Austenite') else None)
+        plt.tight_layout()
+        plt.legend(loc='best')
+        plt.savefig(f"{folder}/svc-Residuals-{phase} - dec13 - wo micrograph27.png")
+        # plt.show()
         plt.clf()
 
 def plot_confusion_matrices(matrices: List[np.ndarray]) -> None:

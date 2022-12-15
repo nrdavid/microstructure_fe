@@ -7,6 +7,7 @@ import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_squared_error
 import joblib
+#from tensorflow import keras
 
 def measured_area_fraction(pics: np.ndarray) -> pd.DataFrame:
 
@@ -17,11 +18,11 @@ def measured_area_fraction(pics: np.ndarray) -> pd.DataFrame:
         sql = r"""
         SELECT 
         image_path,
-        (label0 / pixels_per_micron) AS Matrix,
-        (label1 / pixels_per_micron) AS Austinite,
-        (label2 / pixels_per_micron) AS Martensite_Austenite,
-        (label3 / pixels_per_micron) AS Precipitate,
-        (label4 / pixels_per_micron) AS Defect
+        (label0 / (pixels_per_micron*pixels_per_micron)) AS Matrix,
+        (label1 / (pixels_per_micron*pixels_per_micron)) AS Austinite,
+        (label2 / (pixels_per_micron*pixels_per_micron)) AS Martensite_Austenite,
+        (label3 / (pixels_per_micron*pixels_per_micron)) AS Precipitate,
+        (label4 / (pixels_per_micron*pixels_per_micron)) AS Defect
         FROM
         micrograph
         WHERE image_path in ({})
@@ -79,8 +80,9 @@ if __name__ == "__main__":
     train_pics = dataset['X_train']['picture'].unique()
     test_pics = dataset['X_test']['picture'].unique()
 
-    Model = joblib.load(r"models/classifier.compressed")
-
+    Model = joblib.load(r"models/svc_classifier.compressed")
+    # Model = keras.models.load_model(r"models/keras_classifier.h5")
+    
     MeasuredArea_train = measured_area_fraction(train_pics)
     train_values, train_loss = evaluate(Model, dataset['X_train'], MeasuredArea_train, PHASE_MAP)
     train_values['split'] = 'train'
@@ -96,10 +98,13 @@ if __name__ == "__main__":
         'train': train_loss,
         'test': test_loss
     }
+    print(errors)
 
     with open("metrics/phase-area-rmse.json", "w") as f:
         f.write(json.dumps(errors, indent=3))
 
-    plot_predicted_versus_true(results, 'metrics')
+    nick_data = pd.read_pickle(r"metrics/Nick_prediction_results.pkl")
+
+    plot_predicted_versus_true(results, nick_data, 'metrics')
 
     
