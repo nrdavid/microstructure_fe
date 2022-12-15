@@ -68,8 +68,13 @@ def plot_predicted_versus_true(data:pd.DataFrame, folder:str) -> None:
 
     for group in data.groupby(by='phase'):
         phase, df = group
+
+        train = df[df['split']=='train']
+        test = df[df['split']=='test']
+
         plt.title(f'Calibration Plot For {phase} Phase')
-        plt.scatter(df['True Area'], df['Predicted Area'])
+        plt.scatter(train['True Area'], train['Predicted Area'], c='blue')
+        plt.scatter(test['True Area'], test['Predicted Area'], c='pink')
         plt.ylabel('Predicted Total Phase Area')
         plt.xlabel('True Total Phase Area')
         plt.ylim(0, )
@@ -106,4 +111,4 @@ if __name__=="__main__":
 
     make_plots(sampleset)
 
-    phase_frequency(sampleset)
+    # phase_frequency(sampleset)

@@ -8,6 +8,35 @@ from matplotlib import pyplot as plt
 from skimage.io import imread
 from skimage.measure import label, regionprops
 
+PHASE_MAP = {
+    0:"Matrix", 
+    1:"Austinite",
+    2:"Martensite/Austenite",
+    3:"Precipitate",
+    4:"Defect"
+}
+
+PROPS = [
+        "area",
+        "area_bbox",
+        "area_filled",
+        "area_convex",
+        "axis_major_length",
+        "axis_minor_length",
+        "eccentricity",
+        "equivalent_diameter_area",
+        "euler_number",
+        "extent",
+        "feret_diameter_max",
+        "intensity_max",
+        "intensity_mean",
+        "intensity_min",
+        "orientation",
+        "perimeter",
+        "perimeter_crofton",
+        "solidity"
+]
+
 
 def get_pixel_to_area_conversion(im: str, db:str=r"MetalDAM/MetalDAM_metadata.sql") -> float:
 
@@ -21,13 +50,6 @@ def get_pixel_to_area_conversion(im: str, db:str=r"MetalDAM/MetalDAM_metadata.sq
     return conversion
 
 if __name__=="__main__":
-    # Once DBSCAN is implemented, create function to get feature properties.
-    
-    PHASE_MAP = {0:"Matrix", 
-                 1:"Austinite",
-                 2:"Martensite/Austenite",
-                 3:"Precipitate",
-                 4:"Defect"}
 
     morphological_data = []
     for pic in tqdm(os.listdir(r"MetalDAM/cropped_grayscale")):
@@ -42,24 +64,10 @@ if __name__=="__main__":
             mask = im_lb == k
             labels = label(mask, connectivity=2)
 
-            # Uncomment to see phase comparision.
-            # fig, ax = plt.subplots(1,2)
-            # ax[0].set_title(f"labeled {PHASE_MAP[k]}")
-            # ax[0].imshow(mask)
-            # ax[1].set_title(f"Raw {PHASE_MAP[k]}")
-            # ax[1].imshow(labels)
-            # # plt.title(f"{pic}\n count: {count} , phase {k}")
-            # plt.show()
-
-            props = ["area", "area_filled", "axis_major_length", "axis_minor_length",
-                    "eccentricity", "equivalent_diameter_area", "feret_diameter_max",
-                    "intensity_max", "intensity_mean", "intensity_min", "perimeter",
-                    "solidity"]
-
             properties = regionprops(labels, im_og)
 
             results = pd.DataFrame.from_dict(
-            {l: {p: properties[l][p] for p in props} for l in range(1, labels.max())}, orient='index'
+            {l: {p: properties[l][p] for p in PROPS} for l in range(1, labels.max())}, orient='index'
             )
             try:
                 # change to test if results.empty then del results.
