@@ -68,6 +68,7 @@ def evaluate(model: Pipeline, X: pd.DataFrame, measured: pd.DataFrame, key: dict
 
     return df, loss_metrics
 
+
 if __name__ == "__main__":
     from split import FEATURES, LABEL, IMAGE
     from viz import PHASE_MAP, plot_predicted_versus_true
@@ -81,7 +82,7 @@ if __name__ == "__main__":
     test_pics = dataset['X_test']['picture'].unique()
 
     Model = joblib.load(r"models/svc_classifier.compressed")
-    # Model = keras.models.load_model(r"models/keras_classifier.h5")
+    
     
     MeasuredArea_train = measured_area_fraction(train_pics)
     train_values, train_loss = evaluate(Model, dataset['X_train'], MeasuredArea_train, PHASE_MAP)
@@ -94,17 +95,24 @@ if __name__ == "__main__":
 
     results = pd.concat([train_values, test_values])
 
+    # nick_data = pd.read_pickle(r"metrics/Nick_prediction_results.pkl")
+
+    df_nick_samples = pd.read_pickle(r"misc/tom_final.pkl")
+    df_nick_samples['picture'] = df_nick_samples['picture'].map(lambda x: x.split('.')[0])
+    
+    from predict_nick_samples import fix_units
+    df_nick_samples = fix_units(df_nick_samples)
+    nick_values, nick_loss = evaluate(Model, df_nick_samples, MeasuredArea_test, PHASE_MAP)
+
+
+    plot_predicted_versus_true(results, nick_values, 'metrics')
+
     errors = {
         'train': train_loss,
-        'test': test_loss
+        'test': test_loss,
+        'segmented': nick_loss
     }
-    print(errors)
+    print(pd.DataFrame.from_dict(errors, orient="index"))
 
     with open("metrics/phase-area-rmse.json", "w") as f:
         f.write(json.dumps(errors, indent=3))
-
-    nick_data = pd.read_pickle(r"metrics/Nick_prediction_results.pkl")
-
-    plot_predicted_versus_true(results, nick_data, 'metrics')
-
-    
