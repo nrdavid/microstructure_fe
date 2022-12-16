@@ -108,7 +108,7 @@ def plot_predicted_versus_true(data:pd.DataFrame, preds: pd.DataFrame, folder:st
         plt.xlim(0, 525 if phase in ('Matrix', 'Austenite') else None)
         plt.tight_layout()
         plt.legend(loc='best')
-        plt.savefig(f"{folder}/svc-Residuals-{phase} - dec13 - wo micrograph27.png")
+        plt.savefig(f"{folder}/svc-Residuals-{phase} - dec15 - wo micrograph27.png")
         # plt.show()
         plt.clf()
 
